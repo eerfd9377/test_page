@@ -1,144 +1,150 @@
 <!doctype html>
 <html lang="ko">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>금 가격 트래커 (XAU)</title>
-    <meta name="description" content="실시간 금(XAU) 시세를 통화별로 확인하고, 간단한 추세(최근 기록)를 보여주는 정적 사이트입니다." />
-    <link rel="stylesheet" href="./styles.css" />
-  </head>
-  <body>
-    <header class="header">
-      <div class="container">
-        <a class="brand" href="#top">금 가격 트래커</a>
-        <nav class="nav" aria-label="주요 메뉴">
-          <a href="#now">현재 시세</a>
-          <a href="#trend">추세</a>
-          <a href="#about">설명</a>
-        </nav>
-        <button class="theme" id="themeToggle" type="button" aria-label="테마 전환">
-          <span aria-hidden="true">◐</span>
-        </button>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>일본 주식 우대권 매니저 (Demo)</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="app-header">
+    <div>
+      <h1>일본 주식 우대권 매니저 <span class="badge">Demo</span></h1>
+      <p class="subtitle">로컬 저장(localStorage) 기반 데모 — 로그인/서버 없이 동작</p>
+    </div>
+    <div class="header-actions">
+      <button id="btnExport" class="btn secondary">내보내기(JSON)</button>
+      <label class="btn secondary file-label">
+        가져오기(JSON)
+        <input id="fileImport" type="file" accept="application/json" hidden />
+      </label>
+      <button id="btnReset" class="btn danger">초기화</button>
+    </div>
+  </header>
+
+  <main class="layout">
+    <section class="panel">
+      <h2>우대권 추가</h2>
+      <form id="perkForm" class="form">
+        <div class="grid">
+          <label>
+            회사명
+            <input name="company" required placeholder="예: AEON" />
+          </label>
+          <label>
+            종목코드(티커)
+            <input name="ticker" placeholder="예: 8267" />
+          </label>
+          <label>
+            우대 종류
+            <select name="category">
+              <option value="coupon">쿠폰/할인권</option>
+              <option value="voucher">상품권/기프트</option>
+              <option value="food">식사권</option>
+              <option value="transport">교통/여행</option>
+              <option value="other">기타</option>
+            </select>
+          </label>
+          <label>
+            발급/도착일
+            <input name="receivedAt" type="date" />
+          </label>
+          <label>
+            만료일
+            <input name="expiresAt" type="date" />
+          </label>
+          <label>
+            수량
+            <input name="quantity" type="number" min="1" value="1" required />
+          </label>
+        </div>
+
+        <label>
+          메모
+          <textarea name="memo" rows="3" placeholder="사용처, 조건(몇 주 이상 보유), 필요한 인증 등"></textarea>
+        </label>
+
+        <div class="row">
+          <label class="checkbox">
+            <input name="isDigital" type="checkbox" />
+            디지털(코드/링크) 우대권
+          </label>
+          <label>
+            링크(선택)
+            <input name="link" type="url" placeholder="https://..." />
+          </label>
+        </div>
+
+        <div class="row end">
+          <button class="btn primary" type="submit">추가</button>
+        </div>
+      </form>
+
+      <div class="hint">
+        <strong>힌트:</strong> 실제 앱에서는 사진/스캔, OCR, 알림(만료 30/7/1일 전), 가족 공유, 증빙(주주명부/우편물) 같은 기능을 고려하면 좋아요.
       </div>
-    </header>
+    </section>
 
-    <main id="top">
-      <section class="hero">
-        <div class="container">
-          <p class="kicker">현재 금값을 가볍게 추적</p>
-          <h1>Gold (XAU) Price Tracker</h1>
-          <p class="subtitle">
-            선택한 통화 기준으로 금(1oz / 1g) 가격을 불러오고, 최근 기록을 저장해 간단한 추세를 보여줍니다.
-          </p>
-          <div class="cta">
-            <a class="btn primary" href="#now">시세 보기</a>
-            <a class="btn" href="#trend">추세 보기</a>
-          </div>
-          <p class="note" id="clock" aria-live="polite"></p>
+    <section class="panel">
+      <div class="panel-header">
+        <h2>보유 우대권</h2>
+        <div class="controls">
+          <input id="search" class="search" placeholder="검색: 회사명/티커/메모" />
+          <select id="filterStatus">
+            <option value="all">전체</option>
+            <option value="active">사용가능</option>
+            <option value="used">사용완료</option>
+            <option value="expired">만료</option>
+          </select>
+          <select id="sortBy">
+            <option value="expiresAsc">만료 임박순</option>
+            <option value="receivedDesc">최근 수령순</option>
+            <option value="companyAsc">회사명(A→Z)</option>
+          </select>
         </div>
-      </section>
-
-      <section id="now" class="section">
-        <div class="container">
-          <h2>현재 시세</h2>
-          <div class="controls">
-            <label>
-              기준 통화
-              <select id="currency">
-                <option value="JPY" selected>JPY (엔)</option>
-                <option value="USD">USD (달러)</option>
-                <option value="KRW">KRW (원)</option>
-                <option value="EUR">EUR (유로)</option>
-                <option value="GBP">GBP (파운드)</option>
-              </select>
-            </label>
-            <label>
-              자동 새로고침
-              <select id="interval">
-                <option value="0">끔</option>
-                <option value="30">30초</option>
-                <option value="60" selected>60초</option>
-                <option value="300">5분</option>
-              </select>
-            </label>
-            <button class="btn primary" id="refresh" type="button">지금 새로고침</button>
-          </div>
-
-          <div class="grid">
-            <article class="card">
-              <div class="row">
-                <h3>금 1 트로이온스 (1oz)</h3>
-                <span class="pill" id="badgeCurr">JPY</span>
-              </div>
-              <p class="big" id="priceOz">—</p>
-              <p class="muted" id="chgOz">—</p>
-            </article>
-
-            <article class="card">
-              <div class="row">
-                <h3>금 1그램 (1g)</h3>
-                <span class="pill" id="badgeCurr2">JPY</span>
-              </div>
-              <p class="big" id="priceG">—</p>
-              <p class="muted" id="chgG">—</p>
-            </article>
-
-            <article class="card">
-              <div class="row">
-                <h3>업데이트</h3>
-                <span class="pill ok">Live</span>
-              </div>
-              <p class="muted" id="asof">—</p>
-              <p class="note" id="status" role="status"></p>
-            </article>
-          </div>
-        </div>
-      </section>
-
-      <section id="trend" class="section alt">
-        <div class="container">
-          <h2>추세(최근 기록)</h2>
-          <p class="muted">이 브라우저에만 저장됩니다(로컬스토리지). 새로고침해도 유지됩니다.</p>
-
-          <div class="grid">
-            <article class="card span2">
-              <div class="row">
-                <h3>최근 1oz 가격</h3>
-                <span class="pill" id="trendCurr">JPY</span>
-              </div>
-              <canvas id="chart" width="900" height="260" aria-label="가격 추세 차트"></canvas>
-              <p class="muted" id="trendMeta">—</p>
-            </article>
-
-            <article class="card">
-              <h3>관리</h3>
-              <p class="muted">필요하면 기록을 지울 수 있습니다.</p>
-              <div class="actions">
-                <button class="btn" id="clear" type="button">기록 지우기</button>
-              </div>
-            </article>
-          </div>
-        </div>
-      </section>
-
-      <section id="about" class="section">
-        <div class="container">
-          <h2>설명</h2>
-          <ul>
-            <li><strong>데이터:</strong> 공개 JSON 엔드포인트(금 시세)에서 가져옵니다.</li>
-            <li><strong>주의:</strong> 투자 판단용이 아니라 참고용입니다(거래소/스프레드/지연 가능).</li>
-            <li><strong>배포:</strong> 정적 사이트라 GitHub Pages에 그대로 올릴 수 있습니다.</li>
-          </ul>
-        </div>
-      </section>
-    </main>
-
-    <footer class="footer">
-      <div class="container">
-        <p>© <span id="year"></span> 금 가격 트래커 · Made by 비서군</p>
       </div>
-    </footer>
 
-    <script src="./script.js" defer></script>
-  </body>
+      <div id="stats" class="stats"></div>
+      <div id="list" class="list"></div>
+
+      <details class="details">
+        <summary>데모의 한계 / 다음 단계</summary>
+        <ul>
+          <li>현재는 브라우저 <code>localStorage</code>에만 저장됩니다(동기화/백업 없음).</li>
+          <li>푸시 알림, 캘린더 연동, 사진/OCR, 로그인, 가족 공유는 미구현입니다.</li>
+          <li>다음 단계로는: DB 스키마 설계 → API(인증/권한) → 클라이언트(모바일/웹) → 알림 워커 순으로 확장 추천.</li>
+        </ul>
+      </details>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <p>Demo — 데이터는 이 기기/브라우저에만 저장됩니다.</p>
+  </footer>
+
+  <template id="perkCardTpl">
+    <article class="card">
+      <div class="card-top">
+        <div>
+          <div class="title"></div>
+          <div class="meta"></div>
+        </div>
+        <div class="pill"></div>
+      </div>
+
+      <div class="card-body">
+        <div class="kv"></div>
+        <div class="memo"></div>
+      </div>
+
+      <div class="card-actions">
+        <button class="btn small secondary btnToggleUsed">사용/취소</button>
+        <button class="btn small secondary btnDuplicate">복제</button>
+        <button class="btn small danger btnDelete">삭제</button>
+      </div>
+    </article>
+  </template>
+
+  <script src="app.js"></script>
+</body>
 </html>

@@ -1,39 +1,25 @@
-# 금 가격 트래커 사이트 (정적)
+# 일본 주식 우대권 매니저 (Static Demo)
 
-현재 금(XAU) 시세를 통화별로 확인하고, 최근 기록을 저장해 간단한 추세를 보여주는 단일 페이지 사이트입니다.
+이 폴더는 정적 웹사이트입니다(HTML/CSS/JS only).
 
-## 실행(로컬 미리보기)
-
-### 옵션 A: 그냥 파일로 열기
-- `site/index.html` 더블클릭
-
-### 옵션 B: 간단한 로컬 서버(권장)
-
+## 로컬 실행
 ```bash
-cd site
-python3 -m http.server 5173
+cd jp-shareholder-perks-demo
+python3 -m http.server 8080
+# 브라우저: http://localhost:8080
 ```
 
-그 다음 브라우저에서:
-- http://localhost:5173
+## 배포 옵션(정적 호스팅)
+### 1) GitHub Pages
+1. 이 폴더를 GitHub 리포지토리에 올립니다.
+2. Settings → Pages → Deploy from branch → `main` / `/ (root)` 또는 `/docs`.
 
-## 구성
-- `index.html`: 현재 시세 + 추세(차트) + 설명
-- `styles.css`: 컨트롤/차트/카드 스타일
-- `script.js`: 다크모드, 시계, 시세 fetch, 로컬 기록 저장, 간단 차트 렌더
+### 2) Netlify (드래그앤드롭)
+- Netlify에서 이 폴더를 그대로 업로드하면 됩니다(빌드 없음).
 
-## 데이터 소스
-- https://data-asg.goldprice.org/dbXRates/<CURRENCY>
+### 3) Vercel
+- Framework preset 없이 Static으로 배포 가능(빌드 없음).
 
-## 배포
-- GitHub Pages(현재 세팅): `eerfd9377/test_page`에 푸시하면 자동 반영
-
-## GitHub Pages로 계속 배포하기 (eerfd9377/test_page)
-
-```bash
-cd /Users/biseogun/clawd-dev/site
-./deploy_github_pages.sh
-```
-
-배포 URL:
-- https://eerfd9377.github.io/test_page/
+## 데이터 저장
+- 데모는 브라우저 `localStorage`에 저장됩니다. (기기/브라우저 변경 시 데이터 이동 필요)
+- 내보내기/가져오기(JSON) 기능 제공.
